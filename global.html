@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi de l'avancement des travaux</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            font-size: 30px;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #3498db;
+            color: white;
+            padding: 20px;
+            text-transform: uppercase;
+            width: 100%;
+        }
+
+        main {
+            margin-top: 50px;
+            text-align: center;
+            width: 80%;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #bdc3c7;
+            border-radius: 10px;
+        }
+
+        p {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 18px;
+            background-color: #2980b9;
+            color: white;
+            padding: 20px;
+            width: 100%;
+            margin-top: 40px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Suivi de l'avancement des travaux</h1>
+    </header>
+
+    <main>
+        <label for="day">Sélectionnez un jour:</label>
+        <select id="day"></select>
+
+        <label for="floor">Sélectionnez un étage:</label>
+        <select id="floor"></select>
+
+        <div id="columns-section" class="section">
+            <h2>Avancement des poteaux</h2>
+            <label for="total-columns">Nombre total de poteaux:</label>
+            <input type="number" id="total-columns">
+            <label for="poured-columns">Nombre de poteaux coulés:</label>
+            <input type="number" id="poured-columns">
+            <button id="calculate-columns-progress">Calculer l'avancement</button>
+            <p id="columns-progress"></p>
+            <button id="next-to-beams">Continuer vers les poutres</button>
+        </div>
+
+        <div id="beams-section" class="section">
+            <h2>Avancement des poutres</h2>
+            <label for="total-beams">Nombre total de poutres:</label>
+            <input type="number" id="total-beams">
+            <label for="poured-beams">Nombre de poutres coulées:</label>
+            <input type="number" id="poured-beams">
+            <button id="calculate-beams-progress">Calculer l'avancement</button>
+            <p id="beams-progress"></p>
+            <button id="next-to-elevators">Continuer vers les ascenseurs</button>
+        </div>
+
+        <div id="elevators-section" class="section">
+            <h2>Avancement des ascenseurs</h2>
+            <label for="elevator1-progress">Ascenseur 1:</label>
+            <select id="elevator1-progress">
+                <option value="25">Ferraillage (25%)</option>
+                <option value="50">Coffrage (50%)</option>
+                <option value="100">Coulé (100%)</option>
+            </select>
+            <label for="elevator2-progress">Ascenseur 2:</label>
+            <select id="elevator2-progress">
+                <option value="25">Ferraillage (25%)</option>
+                <option value="50">Coffrage (50%)</option>
+                <option value="100">Coulé (100%)</option>
+            </select>
+            <button id="calculate-elevators-progress">Calculer l'avancement</button>
+            <p id="elevators-progress"></p>
+            <button id="next-to-stairs">Continuer vers les escaliers</button>
+        </div>
+
+        <div id="stairs-section" class="section">
+            <h2>Avancement des escaliers</h2>
+            <label for="stair1-progress">Escalier 1:</label>
+            <select id="stair1-progress">
+                <option value="25">Ferraillage (25%)</option>
+                <option value="50">Coffrage (50%)</option>
+                <option value="100">Coulé (100%)</option>
+            </select>
+            <label for="stair2-progress">Escalier 2:</label>
+            <select id="stair2-progress">
+                <option value="25">Ferraillage (25%)</option>
+                <option value="50">Coffrage (50%)</option>
+                <option value="100">Coulé (100%)</option>
+            </select>
+            <button id="calculate-stairs-progress">Calculer l'avancement</button>
+            <p id="stairs-progress"></p>
+            <button id="next-to-slab">Continuer vers le plancher</button>
+        </div>
+
+        <div id="slab-section" class="section">
+            <h2>Avancement du plancher</h2>
+            <label for="slab-progress">Pourcentage d'avancement:</label>
+            <input type="number" id="slab-progress">
+            <button id="calculate-overall-progress">Calculer l'avancement global</button>
+            <p id="overall-progress"></p>
+            <button id="submit-progress">Finir pour ce jour et envoyer les données</button>
+        </div>
+    </main>
+
+    <footer>
+        MArisk
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOA0a_rjXqY99KXyyuHEiPOJDGGapZQUo",
+            authDomain: "suivi-49954.firebaseapp.com",
+            databaseURL: "https://suivi-49954-default-rtdb.firebaseio.com",
+            projectId: "suivi-49954",
+            storageBucket: "suivi-49954.appspot.com",
+            messagingSenderId: "141836603566",
+            appId: "1:141836603566:web:aaff934468238d958cdd3f",
+            measurementId: "G-3CMYEPPYK8"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Generate days for September and October 2024
+        function generateDays() {
+            const daySelect = document.getElementById('day');
+            for (let month = 9; month <= 10; month++) {
+                const daysInMonth = new Date(2024, month, 0).getDate();
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(2024, month - 1, day);
+                    const dateString = date.toISOString().split('T')[0];
+                    const option = document.createElement('option');
+                    option.value = dateString;
+                    option.textContent = `${day} ${month === 9 ? 'Septembre' : 'Octobre'} 2024`;
+                    daySelect.appendChild(option);
+                }
+            }
+        }
+
+        // Generate floors
+        function generateFloors() {
+            const floorSelect = document.getElementById('floor');
+            const floors = ['RDC', 'R+1', 'R+2', 'R+3', 'R+4'];
+            floors.forEach(floor => {
+                const option = document.createElement('option');
+                option.value = floor;
+                option.textContent = floor;
+                floorSelect.appendChild(option);
+            });
+        }
+
+        // Initialize page
+        function initializePage() {
+            generateDays();
+            generateFloors();
+            document.getElementById('columns-section').style.display = 'block';
+        }
+
+        initializePage();
+
+        // Function to calculate progress
+        function calculateProgress(total, completed) {
+            return (completed / total) * 100;
+        }
+
+        // Event listeners for calculation and navigation between sections
+        document.getElementById('calculate-columns-progress').addEventListener('click', function() {
+            const totalColumns = parseInt(document.getElementById('total-columns').value);
+            const pouredColumns = parseInt(document.getElementById('poured-columns').value);
+            const progress = calculateProgress(totalColumns, pouredColumns);
+            document.getElementById('columns-progress').innerText = `Avancement des poteaux: ${progress}%`;
+        });
+
+        document.getElementById('next-to-beams').addEventListener('click', function() {
+            document.getElementById('columns-section').style.display = 'none';
+            document.getElementById('beams-section').style.display = 'block';
+        });
+
+        document.getElementById('calculate-beams-progress').addEventListener('click', function() {
+            const totalBeams = parseInt(document.getElementById('total-beams').value);
+            const pouredBeams = parseInt(document.getElementById('poured-beams').value);
+            const progress = calculateProgress(totalBeams, pouredBeams);
+            document.getElementById('beams-progress').innerText = `Avancement des poutres: ${progress}%`;
+        });
+
+        document.getElementById('next-to-elevators').addEventListener('click', function() {
+            document.getElementById('beams-section').style.display = 'none';
+            document.getElementById('elevators-section').style.display = 'block';
+        });
+
+        document.getElementById('calculate-elevators-progress').addEventListener('click', function() {
+            const elevator1Progress = parseInt(document.getElementById('elevator1-progress').value);
+            const elevator2Progress = parseInt(document.getElementById('elevator2-progress').value);
+            const progress = (elevator1Progress + elevator2Progress) / 2;
+            document.getElementById('elevators-progress').innerText = `Avancement des ascenseurs: ${progress}%`;
+        });
+
+        document.getElementById('next-to-stairs').addEventListener('click', function() {
+            document.getElementById('elevators-section').style.display = 'none';
+            document.getElementById('stairs-section').style.display = 'block';
+        });
+
+        document.getElementById('calculate-stairs-progress').addEventListener('click', function() {
+            const stair1Progress = parseInt(document.getElementById('stair1-progress').value);
+            const stair2Progress = parseInt(document.getElementById('stair2-progress').value);
+            const progress = (stair1Progress + stair2Progress) / 2;
+            document.getElementById('stairs-progress').innerText = `Avancement des escaliers: ${progress}%`;
+        });
+
+        document.getElementById('next-to-slab').addEventListener('click', function() {
+            document.getElementById('stairs-section').style.display = 'none';
+            document.getElementById('slab-section').style.display = 'block';
+        });
+
+        document.getElementById('calculate-overall-progress').addEventListener('click', function() {
+            const columnsProgress = parseInt(document.getElementById('columns-progress').innerText.split(': ')[1].slice(0, -1));
+            const beamsProgress = parseInt(document.getElementById('beams-progress').innerText.split(': ')[1].slice(0, -1));
+            const elevatorsProgress = parseInt(document.getElementById('elevators-progress').innerText.split(': ')[1].slice(0, -1));
+            const stairsProgress = parseInt(document.getElementById('stairs-progress').innerText.split(': ')[1].slice(0, -1));
+            const slabProgress = parseInt(document.getElementById('slab-progress').value);
+            const overallProgress = (columnsProgress + beamsProgress + elevatorsProgress + stairsProgress + slabProgress) / 5;
+            document.getElementById('overall-progress').innerText = `Avancement global: ${overallProgress}%`;
+        });
+
+        // Event listener to submit data to Firebase
+        document.getElementById('submit-progress').addEventListener('click', function() {
+            const day = document.getElementById('day').value;
+            const floor = document.getElementById('floor').value;
+            const columnsProgress = parseInt(document.getElementById('columns-progress').innerText.split(': ')[1].slice(0, -1));
+            const beamsProgress = parseInt(document.getElementById('beams-progress').innerText.split(': ')[1].slice(0, -1));
+            const elevatorsProgress = parseInt(document.getElementById('elevators-progress').innerText.split(': ')[1].slice(0, -1));
+            const stairsProgress = parseInt(document.getElementById('stairs-progress').innerText.split(': ')[1].slice(0, -1));
+            const slabProgress = parseInt(document.getElementById('slab-progress').value);
+            const overallProgress = parseInt(document.getElementById('overall-progress').innerText.split(': ')[1].slice(0, -1));
+
+            firebase.database().ref('site1/').push({
+                day: day,
+                floor: floor,
+                columnsProgress: columnsProgress,
+                beamsProgress: beamsProgress,
+                elevatorsProgress: elevatorsProgress,
+                stairsProgress: stairsProgress,
+                slabProgress: slabProgress,
+                overallProgress: overallProgress
+            });
+
+            alert("Les données ont été envoyées avec succès.");
+        });
+    </script>
+</body>
+</html>
